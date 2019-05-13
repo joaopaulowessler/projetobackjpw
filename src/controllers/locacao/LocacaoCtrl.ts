@@ -3,7 +3,8 @@ import {NotFound} from "ts-httpexceptions";
 import {LocacaoService} from "../../services/locacao/LocacaoService";
 import {Locacao} from "../../interfaces/Locacao";
 import {PessoaService} from "../../services/pessoa/PessoaService";
-//import { writeFileSync, readFileSync } from "fs";
+import {json2csv} from "json-2-csv-ts";
+import { writeFileSync, readFileSync } from "fs";
 
 @Controller("/locacao")
 @MergeParams(true)
@@ -19,7 +20,7 @@ export class LocacaoCtrl {
         if (pessoa) {
 
             const valorConvertido = await this.locacaoService.getMoeda("USD", "BRL", Number(locacao.valor));
-            locacao.valor_dolar = Number(valorConvertido.data["USD_BRL"]) * Number(locacao.valor);
+            locacao.valor_dolar = Number(locacao.valor) / Number(valorConvertido.data["USD_BRL"]);
 
             const loc = await this.locacaoService.create(locacao);
 
@@ -45,15 +46,15 @@ export class LocacaoCtrl {
         }
     }
 
-    /*@Get("/report/")
+    @Get("/report/")
     @Header("content-disposition", "attachment;fileName=locacaoReport.csv")
-    @ContentType("text/csv")
+    @ContentType('text/csv')
     async report(){
 
         let locacoes = await this.locacaoService.query();
         writeFileSync(__dirname + '/report.csv', json2csv(locacoes));
         return readFileSync(__dirname + '/report.csv', 'utf8');
-    }*/
+    }
 
     @Get("/total/:id")
     async totalPessoa(@Required() @PathParams("id") id: string): Promise<any> {
@@ -74,7 +75,7 @@ export class LocacaoCtrl {
         }
     }
 
-    @Get("/arquivo/")
+    /*@Get("/arquivo/")
     async arquivo(): Promise<Locacao[]> {
 
         const locacoes = await this.locacaoService.query();
@@ -85,7 +86,7 @@ export class LocacaoCtrl {
         } else{
             throw new NotFound("Nenhuma locacao encontrada");
         }
-    }
+    }*/
 
     @Get("/:id")
     async findById(@Required() @PathParams("id") id: string): Promise<Locacao> {
@@ -104,8 +105,8 @@ export class LocacaoCtrl {
                  @BodyParams() @Required() locacao: Locacao): Promise<Locacao> {
 
         const valorConvertido = await this.locacaoService.getMoeda("USD", "BRL", Number(locacao.valor));
-        
-        locacao.valor_dolar = Number(valorConvertido.data["USD_BRL"]) * Number(locacao.valor);
+
+        locacao.valor_dolar = Number(locacao.valor) / Number(valorConvertido.data["USD_BRL"]);
 
         const pessoa = await this.pessoaService.findById(locacao.id_pessoa);
 
